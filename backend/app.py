@@ -76,7 +76,7 @@ async def process_chat(session_id: str, user_message: str):
     if len(user_message.split()) < 6:
         context_chunks = []
     else:
-        context_chunks = retriever.retrieve(user_message, top_k=3)
+        context_chunks = retriever.retrieve(user_message)
     
     # 4. Update Memory (User message -> DB)
     add_message(session_id, "user", user_message)
