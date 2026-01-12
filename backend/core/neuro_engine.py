@@ -113,6 +113,8 @@ At the very end of every response, output exactly:
 
 from threading import Lock
 
+from .resources import shared
+
 class NeuroEngine:
     def __init__(self):
         if not GROQ_API_KEY:
@@ -125,18 +127,11 @@ class NeuroEngine:
             max_tokens=350
         )
         
-        # Initialize Embedding Model for Signals (Lazy Load)
-        self._embedding_model = None
-        self._model_lock = Lock()
+        # Embedding model is now accessed via shared.embedding_model
 
     @property
     def embedding_model(self):
-        with self._model_lock:
-            if self._embedding_model is None:
-                print("Initializing Embedding Model (Lazy)...")
-                self._embedding_model = SentenceTransformer("all-MiniLM-L6-v2", device="cpu")
-                print("Embedding Model Ready.")
-        return self._embedding_model
+        return shared.embedding_model
 
     def _compress_context(self, chunks, max_chars=600):
         joined = " ".join(chunks)

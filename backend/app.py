@@ -50,6 +50,15 @@ from fastapi.responses import JSONResponse
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# PERFORMANCE FIX: Disable parallel tokenizers
+import os
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
+def use_rag(msg):
+    """Simple heuristic to skip RAG for conversational messages."""
+    keywords = ["explain", "what is", "how does", "define", "document", "help me understand"]
+    return any(k in msg.lower() for k in keywords)
+
 async def process_chat(session_id: str, user_message: str):
     # 1. Get Session
     session = get_session(session_id)
@@ -72,8 +81,9 @@ async def process_chat(session_id: str, user_message: str):
     session = get_session(session_id)  # Refresh session with updated stage
     
     # 3. Retrieve Context
-    # Optimization: Skip RAG for short messages to save time
-    if len(user_message.split()) < 6:
+    # Optimization: Skip RAG for short messages OR messages not asking for info
+    # User's logic: if len(split) < 6 OR not use_rag(msg) --> skip
+    if len(user_message.split()) < 6 or not use_rag(user_message):
         context_chunks = []
     else:
         context_chunks = retriever.retrieve(user_message)

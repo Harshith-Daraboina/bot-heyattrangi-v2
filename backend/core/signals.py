@@ -119,11 +119,13 @@ def extract_signals(text, memory, model=None):
         # Lazy load prototype embeddings
         if not PROTOTYPE_EMBEDDINGS:
             for sig, desc in SIGNAL_PROTOTYPES.items():
-                PROTOTYPE_EMBEDDINGS[sig] = model.encode(desc, convert_to_tensor=True)
+                PROTOTYPE_EMBEDDINGS[sig] = model.encode(desc, convert_to_tensor=True, show_progress_bar=False)
         
         # Encode user text
         try:
-            user_emb = model.encode(text, convert_to_tensor=True)
+            # OPTIMIZATION: Use pre-computed embedding if available (not passed yet, but good for future)
+            # For now, just disable progress bar
+            user_emb = model.encode(text, convert_to_tensor=True, show_progress_bar=False)
             
             # Compare
             for sig, proto_emb in PROTOTYPE_EMBEDDINGS.items():
@@ -156,9 +158,9 @@ def detect_response_mode(text, model, min_confidence=0.55):
     try:
         if not RESPONSE_MODE_EMBEDDINGS:
                 for mode, desc in RESPONSE_MODE_PROTOTYPES.items():
-                    RESPONSE_MODE_EMBEDDINGS[mode] = model.encode(desc, convert_to_tensor=True)
+                    RESPONSE_MODE_EMBEDDINGS[mode] = model.encode(desc, convert_to_tensor=True, show_progress_bar=False)
         
-        user_emb = model.encode(text, convert_to_tensor=True)
+        user_emb = model.encode(text, convert_to_tensor=True, show_progress_bar=False)
         scores = {}
         for mode, proto_emb in RESPONSE_MODE_EMBEDDINGS.items():
             scores[mode] = util.cos_sim(user_emb, proto_emb).item()
