@@ -42,7 +42,6 @@ class ChatRequest(BaseModel):
 class SummaryRequest(BaseModel):
     session_id: str
 
-@app.post("/chat")
 import asyncio
 import logging
 from fastapi.responses import JSONResponse

@@ -121,7 +121,7 @@ export default function ChatInterface() {
     return (
         <div className="flex h-screen font-sans">
             {/* Sidebar - Bot Avatar */}
-            <aside className="w-[450px] bg-slate-950 border-r border-slate-800 flex flex-col justify-between p-6">
+            <aside className="hidden md:flex w-[450px] bg-slate-950 border-r border-slate-800 flex-col justify-between p-6">
                 <div className="flex flex-col items-center gap-4">
                     <motion.div
                         key={currentExpression}
@@ -169,9 +169,30 @@ export default function ChatInterface() {
             {/* Main Chat Area */}
             <div className="flex-1 flex flex-col">
                 {/* Header */}
-                <header className="glass-card p-4 border-b border-slate-800">
-                    <h1 className="text-3xl font-bold text-slate-100">Hey Attrangi</h1>
-                    <p className="text-slate-400 mt-1">A safe place to talk.</p>
+                {/* Header */}
+                <header className="glass-card p-4 border-b border-slate-800 flex items-center justify-between sticky top-0 z-10 bg-slate-900/80 backdrop-blur-md">
+                    <div>
+                        <h1 className="text-xl md:text-3xl font-bold text-slate-100">Hey Attrangi</h1>
+                        <p className="text-xs md:text-base text-slate-400 mt-1">A safe place to talk.</p>
+                    </div>
+
+                    {/* Mobile Controls */}
+                    <div className="flex md:hidden items-center gap-3">
+                        <div className="w-10 h-10 rounded-full border-2 border-slate-600 overflow-hidden relative">
+                            <Image
+                                src={getExpressionImage(currentExpression)}
+                                alt={currentExpression}
+                                fill
+                                className="object-cover"
+                            />
+                        </div>
+                        <button onClick={handleReset} className="p-2 bg-slate-800 rounded-full text-slate-300 hover:bg-slate-700">
+                            <RotateCcw size={18} />
+                        </button>
+                        <button onClick={handleSummary} className="p-2 bg-slate-800 rounded-full text-slate-300 hover:bg-slate-700">
+                            <FileText size={18} />
+                        </button>
+                    </div>
                 </header>
 
                 {/* Chat Messages */}
