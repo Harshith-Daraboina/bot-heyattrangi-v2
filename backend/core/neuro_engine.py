@@ -123,10 +123,16 @@ class NeuroEngine:
             max_tokens=350
         )
         
-        # Initialize Embedding Model for Signals
-        print("Initializing Embedding Model...")
-        self.embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
-        print("Embedding Model Ready.")
+        # Initialize Embedding Model for Signals (Lazy Load)
+        self._embedding_model = None
+
+    @property
+    def embedding_model(self):
+        if self._embedding_model is None:
+            print("Initializing Embedding Model (Lazy)...")
+            self._embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
+            print("Embedding Model Ready.")
+        return self._embedding_model
 
     def _compress_context(self, chunks, max_chars=600):
         joined = " ".join(chunks)
