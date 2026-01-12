@@ -43,16 +43,19 @@ class SummaryRequest(BaseModel):
     session_id: str
 
 @app.post("/chat")
-async def chat_endpoint(request: ChatRequest):
-    session_id = request.session_id
-    user_message = request.message
-    
+import asyncio
+import logging
+from fastapi.responses import JSONResponse
+
+# Configure logger
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+async def process_chat(session_id: str, user_message: str):
     # 1. Get Session
     session = get_session(session_id)
     
-    # 2. Extract Signals and merge with existing
     # 2. Extract Signals (modifies session['signals'] in place with decay)
-    # We pass the neuro_engine's embedding model to avoid reloading it
     extract_signals(user_message, session, model=neuro_engine.embedding_model)
     
     current_signals = session.get("signals", {})
@@ -70,9 +73,11 @@ async def chat_endpoint(request: ChatRequest):
     session = get_session(session_id)  # Refresh session with updated stage
     
     # 3. Retrieve Context
-    # "YES, if you dump all embeddings into the prompt ❌. NO, if you retrieve top-k relevant chunks ✅"
-    # "Use chunks as background guidance. Never quote. Never exceed ~800–1200 tokens."
-    context_chunks = retriever.retrieve(user_message, top_k=3) if len(user_message.split()) > 3 else []
+    # Optimization: Skip RAG for short messages to save time
+    if len(user_message.split()) < 6:
+        context_chunks = []
+    else:
+        context_chunks = retriever.retrieve(user_message, top_k=3)
     
     # 4. Update Memory (User message -> DB)
     add_message(session_id, "user", user_message)
@@ -94,6 +99,30 @@ async def chat_endpoint(request: ChatRequest):
         "reply": reply,
         "expression": expression
     }
+
+@app.post("/chat")
+async def chat_endpoint(request: ChatRequest):
+    session_id = request.session_id
+    user_message = request.message
+    
+    try:
+        # Wrap the processing in a timeout block
+        return await asyncio.wait_for(
+            process_chat(session_id, user_message),
+            timeout=25.0 # 25 seconds timeout to beat Cloudflare's limit
+        )
+    except asyncio.TimeoutError:
+        logger.error("Request timed out")
+        return JSONResponse(
+            status_code=504,
+            content={"error": "Response timed out. Please try again."}
+        )
+    except Exception as e:
+        logger.exception("Chat endpoint failed")
+        return JSONResponse(
+            status_code=500,
+            content={"error": "Internal server error. Please retry."}
+        )
 
 @app.post("/summary")
 async def summary_endpoint(request: SummaryRequest):
