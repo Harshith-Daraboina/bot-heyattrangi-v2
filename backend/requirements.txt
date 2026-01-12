@@ -1,15 +1,16 @@
 --extra-index-url https://download.pytorch.org/whl/cpu
 
 torch==2.2.2+cpu
+numpy<2.0
 sentence-transformers==3.4.1
 transformers==4.44.2
+faiss-cpu
 fastapi
 uvicorn
+groq
+scikit-learn
 pydantic
 python-dotenv
 psycopg2-binary
 langchain-groq
 langchain-community
-faiss-cpu
-numpy
-groq

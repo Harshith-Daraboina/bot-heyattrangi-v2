@@ -130,7 +130,7 @@ class NeuroEngine:
     def embedding_model(self):
         if self._embedding_model is None:
             print("Initializing Embedding Model (Lazy)...")
-            self._embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
+            self._embedding_model = SentenceTransformer("all-MiniLM-L6-v2", device="cpu")
             print("Embedding Model Ready.")
         return self._embedding_model
 
