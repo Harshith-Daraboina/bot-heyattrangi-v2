@@ -146,26 +146,12 @@ async def summary_endpoint(request: SummaryRequest):
     summary_text = neuro_engine.generate_summary(conversation)
     
     # SAVE to DB
-    # "SAVES conversation + summary to DB"
     try:
         conn = get_db_connection()
         cur = conn.cursor()
         
-        # Ensure session exists in DB (if not already insert it? We didn't insert it at start)
-        # We need to insert the session first.
-        # Check if session exists, if not insert.
-        cur.execute("SELECT id FROM sessions WHERE id = %s", (session_id,))
-        if not cur.fetchone():
-            cur.execute("INSERT INTO sessions (id) VALUES (%s)", (session_id,))
-            
-        # Insert Messages
-        # Batch insert for efficiency
-        args_str = ','.join(cur.mogrify("(%s, %s, %s, %s)", (str(uuid.uuid4()), session_id, m['role'], m['content'])).decode('utf-8') for m in conversation)
-        if args_str:
-            cur.execute("INSERT INTO messages (id, session_id, role, content) VALUES " + args_str)
-        
-        # Insert Summary
-        cur.execute("INSERT INTO summaries (session_id, summary) VALUES (%s, %s)", (session_id, summary_text))
+        # Update summary in the single table
+        cur.execute("UPDATE v2_chat_history SET summary = %s WHERE id = %s", (summary_text, session_id))
         
         conn.commit()
         cur.close()

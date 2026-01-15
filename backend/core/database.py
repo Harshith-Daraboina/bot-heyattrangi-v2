@@ -23,24 +23,12 @@ def init_db():
     
     # Create tables if not exist
     cur.execute("""
-    CREATE TABLE IF NOT EXISTS sessions (
+    CREATE TABLE IF NOT EXISTS v2_chat_history (
         id UUID PRIMARY KEY,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-    
-    CREATE TABLE IF NOT EXISTS messages (
-        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-        session_id UUID REFERENCES sessions(id),
-        role TEXT NOT NULL,
-        content TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-    
-    CREATE TABLE IF NOT EXISTS summaries (
-        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-        session_id UUID REFERENCES sessions(id),
-        summary TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        conversation JSONB DEFAULT '[]'::jsonb,
+        summary TEXT
     );
     """)
     
